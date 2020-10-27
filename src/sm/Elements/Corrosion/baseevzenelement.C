@@ -34,8 +34,8 @@
  */
 
 
-#include "../sm/Elements/baseeevzenelement.h"
-#include "../sm/Materials/evzenmaterialextensioninterface.h"
+#include "../sm/Elements/Corrosion/baseevzenelement.h"
+//qqq  #include "../sm/Materials/evzenmaterialextensioninterface.h"
 
 #include "../sm/Materials/structuralms.h"
 
@@ -135,14 +135,14 @@ BaseEvzenElement :: giveLocationArrayOfDofIDs(IntArray &locationArray_u, IntArra
 }
 
  
-
+  //meaning of the function - something missing???
 void
 BaseEvzenElement :: compute_StressVector_PhaseField_Concentration(FloatArray &P, FloatArray &E, GaussPoint *gp, TimeStep *tStep)
 {
     NLStructuralElement *elem = this->giveStructuralElement();
-    SimpleElectroMechanicalCrossSection *cs = this->giveCrossSection();
-
-    FloatArray electricDisplacemenet;
+    SimpleElectroMechanicalCrossSection *cs = this->giveCrossSection(); //new crossecton needed ???
+    //unused -- compiler warning ???
+    // FloatArray electricDisplacemenet;
     if( elem->giveGeometryMode() == 0) {
       /*FloatArray strain;
       this->computeStrainVector(strain, gp, tStep);
@@ -166,6 +166,30 @@ BaseEvzenElement :: computeStrainVector(FloatArray &answer, GaussPoint *gp, Time
     answer.beProductOf(B, d_u);
 }
 
+void
+BaseEvzenElement :: computePhaseField(FloatArray &answer,GaussPoint *gp, TimeStep *tStep)
+{
+    IntArray IdMask_phi;
+    FloatArray d_phi;
+    FloatMatrix N_phi;
+    this->giveDofManDofIDMask_phi( IdMask_phi );
+    this->giveStructuralElement()->computeVectorOf(IdMask_phi, VM_Total, tStep, d_phi);
+    this->computePhaseFieldNmatrixAt(gp, N_phi);  
+    answer.beProductOf(N_phi,d_phi);
+}
+
+
+void
+BaseEvzenElement :: computeConcentration(FloatArray &answer,GaussPoint *gp, TimeStep *tStep)
+{
+    IntArray IdMask_c;
+    FloatArray d_c;
+    FloatMatrix N_c;
+    this->giveDofManDofIDMask_c( IdMask_c );
+    this->giveStructuralElement()->computeVectorOf(IdMask_c, VM_Total, tStep, d_c);
+    this->computeConcentrationNmatrixAt(gp, N_c);  
+    answer.beProductOf(N_c,d_c);
+}
 
 void
 BaseEvzenElement :: computePhaseFieldGradient(FloatArray &answer,GaussPoint *gp, TimeStep *tStep)
@@ -201,7 +225,7 @@ void
 BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep, int useUpdatedGpRecord)
 {
     NLStructuralElement *elem = this->giveStructuralElement();
-    FloatArray BS, sigma, vE, BE, ND, gradPhi, electricDisplacement;
+    FloatArray BS, sigma, epsilon, c, phi, pf_N, pf_B, c_N, c_B, c_grad, phi_grad, N_phiN, B_phiB, N_cN, B_cB;
     FloatMatrix B_u, N_phi, B_phi, N_c, B_c;
    
     answer.resize(this->giveNumberOfDofs());
@@ -214,17 +238,18 @@ BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep
     FloatArray answer_c(this->giveNumberOfConcentrationDofs());
     answer_c.zero();
     
-    for ( GaussPoint *gp: *elem->giveIntegrationRule(0) )
-      this->computeStrainVector(epsilon, gp, tStep)
+    for ( GaussPoint *gp: *elem->giveIntegrationRule(0) ) {
+      this->computeStrainVector(epsilon, gp, tStep);
       this->computeConcentration(c, gp, tStep);
       this->computePhaseField(phi, gp, tStep);
       this->computeConcentrationGradient(c_grad, gp, tStep);
       this->computePhaseFieldGradient(phi_grad, gp, tStep);
       //
-      this->compute_InternalForcesInputs(sigma, pf_N, pf_B, c_N, c_B);
+      //qqq this->compute_InternalForcesInputs(sigma, pf_N, pf_B, c_N, c_B);
+      // definition of the function missing
       double dV  = elem->computeVolumeAround(gp);
       // Compute nodal internal forces at nodes as f_u = \int_V B^T*vP dV
-      elem->computeBmatrixAt(gp, B_u, tStep, 0);
+      elem->computeBmatrixAt(gp, B_u, tStep, 0); // difference with this->computeDisplacementFieldBmatrixAt(gp,B)???;
       BS.beTProductOf(B_u, sigma);
       answer_u.add(dV, BS);
       // Compute nodal internal forces at nodes as f_\phi = \int B^T* vD dV     
@@ -241,7 +266,6 @@ BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep
       B_cB.beTProductOf(B_c, c_B);
       answer_c.add(dV, N_cN);
       answer_c.add(dV, B_cB);
-      
     }
 
     answer.assemble(answer_u, locationArray_u);
@@ -301,26 +325,31 @@ BaseEvzenElement :: computeStiffnessMatrix(FloatMatrix &answer, MatResponseMode 
 
 
     NLStructuralElement *elem = this->giveStructuralElement();
-    SimpleElectroMechanicalCrossSection *cs = this->giveCrossSection();
+    SimpleElectroMechanicalCrossSection *cs = this->giveCrossSection(); //unused -- compiler warning ???
 
-    FloatMatrix B_u, B_phi, Duu, Dud, Ddd, DuuBu, DueNd, DeeNd;
-    FloatMatrix Kuu, Kud, Kdu, Kdd, Kde, Ked;
+    FloatMatrix B_u, B_phi, B_c, N_phi, N_c, D_uu, D_N_phiphi, D_B_phiphi, D_N_cc, D_B_cc, DuuB, DphiphiN, DphiphiB, DccN, DccB;
+    FloatMatrix Kuu, Kphiphi, Kcc;
     
     for ( GaussPoint *gp: *elem->giveIntegrationRule(0) ) {
-      this->computeElectricPotentialBmatrixAt(gp, B_phi);  
-      elem->computeBmatrixAt(gp, B_u);
-      cs->giveConstitutiveMatrix_uu(D_uu, rMode, gp, tStep);
-      cs->giveConstitutiveMatrix_N_phiphi(D_N_phiphi, rMode, gp, tStep);
-      cs->giveConstitutiveMatrix_B_phiphi(D_B_phiphi, rMode, gp, tStep);
-      cs->giveConstitutiveMatrix_N_cc(D_N_cc, rMode, gp, tStep);
-      cs->giveConstitutiveMatrix_B_cc(D_B_cc, rMode, gp, tStep);
+      this->computePhaseFieldBmatrixAt(gp, B_phi);
+      this->computeConcentrationBmatrixAt(gp, B_c);
+
+      this->computePhaseFieldNmatrixAt(gp, N_phi);
+      this->computeConcentrationNmatrixAt(gp, N_c);
+       
+      elem->computeBmatrixAt(gp, B_u); // difference with this->computeDisplacementFieldBmatrixAt(gp,B); ???
+      //qqq cs->giveConstitutiveMatrix_uu(D_uu, rMode, gp, tStep);
+      //qqq cs->giveConstitutiveMatrix_N_phiphi(D_N_phiphi, rMode, gp, tStep);
+      //qqq cs->giveConstitutiveMatrix_B_phiphi(D_B_phiphi, rMode, gp, tStep);
+      //qqq cs->giveConstitutiveMatrix_N_cc(D_N_cc, rMode, gp, tStep);
+      //qqq cs->giveConstitutiveMatrix_B_cc(D_B_cc, rMode, gp, tStep);
       
       double dV  = elem->computeVolumeAround(gp);
-      DuuB.beProductOf(Duu, B_u);
-      DphiphiN.beProductOf(DD_N_phiphi, N_phi);
-      DphiphiB.beProductOf(DD_B_phiphi, B_phi);
-      DccN.beProductOf(DD_N_c, N_phi);
-      DccB.beProductOf(DD_B_c, B_phi);
+      DuuB.beProductOf(D_uu, B_u);
+      DphiphiN.beProductOf(D_N_phiphi, N_phi);
+      DphiphiB.beProductOf(D_B_phiphi, B_phi);
+      DccN.beProductOf(D_N_cc, N_phi);
+      DccB.beProductOf(D_B_cc, B_phi);
             
       Kuu.plusProductUnsym(B_u, DuuB, dV);
       Kphiphi.plusProductUnsym(N_phi, DphiphiN, dV);
@@ -336,7 +365,7 @@ BaseEvzenElement :: computeStiffnessMatrix(FloatMatrix &answer, MatResponseMode 
 
 }
 
-
+// new name for the crossection ???
 SimpleElectroMechanicalCrossSection*
 BaseEvzenElement :: giveCrossSection()
 // Returns the crossSection of the receiver.

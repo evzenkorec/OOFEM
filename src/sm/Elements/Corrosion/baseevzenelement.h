@@ -33,8 +33,8 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef baseelectromechanicalelement_3fields_h
-#define baseelectromechanicalelement_3fields_h
+#ifndef baseeevzenelement_h //why _h ???
+#define baseeevzenelement_h
 
 #include "../sm/Elements/structuralelement.h"
 #include "../sm/Elements/nlstructuralelement.h"
@@ -43,19 +43,19 @@
 
 namespace oofem {
 /**
- * Base class for electromechanical formulation.
+ * Base class for corrosion formulation.
  * @author Martin Horak
  */
-  class BaseElectroMechanicalElement_3Fields
+  class BaseEvzenElement
 {
 protected:
-    IntArray displacementDofsOrdering, electricDisplacementDofsOrdering, electricFieldDofsOrdering;
-    IntArray locationArray_u, locationArray_phi, locationArray_d;
+    IntArray displacementDofsOrdering, phaseFieldDofsOrdering, concentrationDofsOrdering;
+    IntArray locationArray_u, locationArray_phi, locationArray_c;
     
 
 public:
-    BaseElectroMechanicalElement_3Fields(int n, Domain *domain);
-    virtual ~BaseElectroMechanicalElement_3Fields() { }
+    BaseEvzenElement(int n, Domain *domain);
+    virtual ~BaseEvzenElement() { }
 
     virtual IRResultType initializeFrom(InputRecord *ir);
 
@@ -63,18 +63,20 @@ protected:
   
     /// Pure virtual functions
     virtual NLStructuralElement *giveStructuralElement() = 0;
-    virtual void computeElectricPotentialBmatrixAt(GaussPoint *gp, FloatMatrix &Be) = 0;
-    virtual void computeElectricDisplacementNmatrixAt(GaussPoint *gp, FloatMatrix &Be) = 0;
+    virtual void computePhaseFieldBmatrixAt(GaussPoint *gp, FloatMatrix &Be) = 0;
+    virtual void computePhaseFieldNmatrixAt(GaussPoint *gp, FloatMatrix &Ne) = 0;
+    virtual void computeConcentrationBmatrixAt(GaussPoint *gp, FloatMatrix &Be) = 0;
+    virtual void computeConcentrationNmatrixAt(GaussPoint *gp, FloatMatrix &Ne) = 0;
     virtual void computeDisplacementFieldBmatrixAt(GaussPoint *gp, FloatMatrix &Bd){this->giveStructuralElement()->computeBmatrixAt(gp, Bd);}
 
-    virtual int giveNumberOfElectricPotentialDofs() = 0;
+    virtual int giveNumberOfConcentrationDofs() = 0;
     virtual int giveNumberOfDisplacementDofs() = 0;
-    virtual int giveNumberOfElectricDisplecementDofs() = 0;
+    virtual int giveNumberOfPhaseFieldDofs() = 0;
     virtual int giveNumberOfDofs() = 0;
 
     virtual void giveDofManDofIDMask_u(IntArray &answer) = 0;
     virtual void giveDofManDofIDMask_phi(IntArray &answer) = 0;
-    virtual void giveDofManDofIDMask_d(IntArray &answer) = 0;
+    virtual void giveDofManDofIDMask_c(IntArray &answer) = 0;
     /// End of pure virtual functions
 
     /// @return Reference to the associated crossSection of element.
@@ -82,19 +84,20 @@ protected:
 
     virtual void computeStiffnessMatrix(FloatMatrix &, MatResponseMode, TimeStep *);
     virtual void giveInternalForcesVector(FloatArray &answer, TimeStep *tStep, int useUpdatedGpRecord);
-    void compute_FirstPKStressVector_ElectricDisplacementVector(FloatArray &stress, FloatArray &electricDisplacement, GaussPoint *gp, TimeStep *tStep);
+  void compute_StressVector_PhaseField_Concentration(FloatArray &stress, FloatArray &electricDisplacement, GaussPoint *gp, TimeStep *tStep); //??? inputs
     void computeStrainVector(FloatArray &answer, GaussPoint *gp, TimeStep *tStep);
-    void computeElectricPotentialGradientVector(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);
-    void computeElectricDisplacementVector(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);   
-
+    void computePhaseField(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);
+    void computeConcentration(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);
+    void computePhaseFieldGradient(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);
+    void computeConcentrationGradient(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);
 
     void computeForceLoadVector(FloatArray &answer, TimeStep *tStep, ValueModeType mode);
     void computeLocForceLoadVector(FloatArray &answer, TimeStep *tStep, ValueModeType mode);
 
     virtual IntArray &giveDisplacementDofsOrdering() {return displacementDofsOrdering;}
-    virtual IntArray &giveElectricPotentialDofsOrdering() {return electricPotentialDofsOrdering;}
-    virtual IntArray &giveElectricDisplacementDofsOrdering() {return electricDisplacementDofsOrdering;}
-    void giveLocationArrayOfDofIDs(IntArray &locationArray_u, IntArray &locationArray_phi, IntArray &locationArray_d, const UnknownNumberingScheme &s, const IntArray &dofIdArray_u,const IntArray &dofIdArray_phi,const IntArray &dofIdArray_d  );
+    virtual IntArray &givePhaseFieldDofsOrdering() {return phaseFieldDofsOrdering;}
+    virtual IntArray &giveConcentrationDofsOrdering() {return concentrationDofsOrdering;}
+    void giveLocationArrayOfDofIDs(IntArray &locationArray_u, IntArray &locationArray_phi, IntArray &locationArray_c, const UnknownNumberingScheme &s, const IntArray &dofIdArray_u,const IntArray &dofIdArray_phi,const IntArray &dofIdArray_c);
     virtual void postInitialize();
     virtual void updateInternalState(TimeStep *tStep);
 

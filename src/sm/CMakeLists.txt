@@ -142,7 +142,10 @@ set (sm_element
     #Electro-mechanical elements
     Elements/ElectroMechanics/baseelectromechanicalelement.C
     Elements/ElectroMechanics/3D/lspaceelectromechanicalelement.C
+    #Corrosion elements
+    Elements/Corrosion/baseevzenelement.C
     )
+        
 
 set (sm_interface_elements
     Elements/Interfaces/cohsur3d.C
