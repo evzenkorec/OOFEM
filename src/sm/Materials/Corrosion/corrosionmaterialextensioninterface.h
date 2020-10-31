@@ -65,13 +65,16 @@ public:
      * Constructor. Creates material with given number, belonging to given domain.
      * @param d Domain to which new material will belong.
      */
-    CorrosionMaterialExtensionInterface(Domain *d){    dom = d;}
+  CorrosionMaterialExtensionInterface(Domain *d){    dom = d;}
     /// Destructor.
-    virtual ~CorrosionMaterialExtensionInterface() { }
+  virtual ~CorrosionMaterialExtensionInterface() { }
 
   
-    virtual void giveCorrosionRealStressVector_3d(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, double phaseField, TimeStep *tStep) = 0;
+  virtual void giveCorrosionRealStressVector(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, double phaseField, TimeStep *tStep) = 0;
   virtual void givePhaseField_Nfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, TimeStep *tStep) = 0;
+  virtual void givePhaseField_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep) = 0;
+  virtual void giveConcentration_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep) = 0;
+  virtual void giveConcentration_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep) = 0;
   // givePhaseField_Bfactor
   // ...
 
@@ -82,7 +85,14 @@ public:
                                                     MatResponseMode mode,
                                                     GaussPoint *gp, TimeStep *tStep) = 0;
 
-virtual void giveCorrosion3dMaterialStiffnessMatrix_B_phiphi(FloatMatrix &answer,
+  virtual void giveCorrosion3dMaterialStiffnessMatrix_B_phiphi(FloatMatrix &answer,
+                                                    MatResponseMode mode,
+                                                    GaussPoint *gp, TimeStep *tStep) = 0;
+  virtual void giveCorrosion3dMaterialStiffnessMatrix_N_cc(FloatMatrix &answer,
+                                                    MatResponseMode mode,
+                                                    GaussPoint *gp, TimeStep *tStep) = 0;
+
+  virtual void giveCorrosion3dMaterialStiffnessMatrix_B_cc(FloatMatrix &answer,
                                                     MatResponseMode mode,
                                                     GaussPoint *gp, TimeStep *tStep) = 0;
 

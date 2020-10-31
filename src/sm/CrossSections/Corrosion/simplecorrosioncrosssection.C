@@ -32,11 +32,11 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "../sm/CrossSections/ElectroMechanics/simpleelectromechanicalcrosssection.h"
+#include "../sm/CrossSections/Corrosion/simplecorrosioncrosssection.h"
 #include "../sm/Materials/structuralmaterial.h"
 #include "../sm/Materials/structuralms.h"
 #include "../sm/Elements/structuralelement.h"
-#include "../sm/Materials/ElectroMechanics/electromechanicalmaterialextensioninterface.h"
+#include "../sm/Materials/Corrosion/corrosionmaterialextensioninterface.h"
 #include "gausspoint.h"
 #include "floatarray.h"
 #include "classfactory.h"
@@ -72,10 +72,6 @@ SimpleCorrosionCrossSection :: compute_StressVector(FloatArray &stress, GaussPoi
 void
 SimpleCorrosionCrossSection :: computePhaseField_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep)
 {
-    // This function returns the first Piola-Kirchoff stress in vector format and vector of electrical displacement
-    // corresponding to a given deformation gradient according to the stress-deformation
-    // mode stored in the each gp.
-
     MaterialMode mode = gp->giveMaterialMode();
     CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
       if ( !corMat ) {
@@ -85,7 +81,43 @@ SimpleCorrosionCrossSection :: computePhaseField_Nfactor(double &N_factor, Gauss
       corMat->givePhaseField_Nfactor(N_factor, gp, phaseField, concentration, tStep);
 }
 
-  ///dodelat dalsi cleny, PhaseField_Bfactor, ...
+void
+SimpleCorrosionCrossSection :: computePhaseField_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep)
+{
+    MaterialMode mode = gp->giveMaterialMode();
+    CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
+      if ( !corMat ) {
+        OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
+      }
+
+      corMat->givePhaseField_Bfactor(B_factor, gp, phaseField, concentration, tStep);
+}
+
+void
+SimpleCorrosionCrossSection :: computeConcentration_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep)
+{
+    MaterialMode mode = gp->giveMaterialMode();
+    CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
+      if ( !corMat ) {
+        OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
+      }
+
+      corMat->giveConcentration_Nfactor(N_factor, gp, phaseField, concentration, tStep);
+}
+
+void
+SimpleCorrosionCrossSection :: computeConcentration_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep)
+{
+    MaterialMode mode = gp->giveMaterialMode();
+    CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
+      if ( !corMat ) {
+        OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
+      }
+
+      corMat->giveConcentration_Bfactor(B_factor, gp, phaseField, concentration, tStep);
+}
+
+  ///??? dodelat dalsi cleny, PhaseField_Bfactor, ...
 
   
 
@@ -106,11 +138,7 @@ SimpleCorrosionCrossSection :: giveConstitutiveMatrix_uu(FloatMatrix &answer, Ma
     }
 }
 
-
-  ///dodelat dalsi cleny, PhaseField_Bfactor, ...
-
-
-  void
+void
 SimpleCorrosionCrossSection :: giveConstitutiveMatrix_N_phiphi(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep)
 {
    CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
@@ -125,6 +153,62 @@ SimpleCorrosionCrossSection :: giveConstitutiveMatrix_N_phiphi(FloatMatrix &answ
         OOFEM_ERROR( "unknown mode (%s)", __MaterialModeToString(mode) );
     }
 }
+
+void
+SimpleCorrosionCrossSection :: giveConstitutiveMatrix_B_phiphi(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep)
+{
+   CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
+   if ( !corMat ) {
+     OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
+   }
+
+   MaterialMode mode = gp->giveMaterialMode();
+    if ( mode == _3dMat ) {
+        corMat->giveCorrosion3dMaterialStiffnessMatrix_B_phiphi(answer, rMode, gp, tStep);
+    } else {
+        OOFEM_ERROR( "unknown mode (%s)", __MaterialModeToString(mode) );
+    }
+}
+
+void
+SimpleCorrosionCrossSection :: giveConstitutiveMatrix_N_cc(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep)
+{
+   CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
+   if ( !corMat ) {
+     OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
+   }
+
+   MaterialMode mode = gp->giveMaterialMode();
+    if ( mode == _3dMat ) {
+        corMat->give3dMaterialStiffnessMatrix_N_cc(answer, rMode, gp, tStep);
+    } else {
+        OOFEM_ERROR( "unknown mode (%s)", __MaterialModeToString(mode) );
+    }
+}
+
+void
+SimpleCorrosionCrossSection :: giveConstitutiveMatrix_B_cc(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep)
+{
+   CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
+   if ( !corMat ) {
+     OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
+   }
+
+   MaterialMode mode = gp->giveMaterialMode();
+    if ( mode == _3dMat ) {
+        corMat->giveCorrosion3dMaterialStiffnessMatrix_B_cc(answer, rMode, gp, tStep);
+    } else {
+        OOFEM_ERROR( "unknown mode (%s)", __MaterialModeToString(mode) );
+    }
+}
+
+
+
+
+  ///dodelat dalsi cleny, PhaseField_Bfactor, ...
+
+
+
 
 
 

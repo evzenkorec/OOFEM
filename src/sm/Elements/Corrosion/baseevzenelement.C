@@ -35,7 +35,7 @@
 
 
 #include "../sm/Elements/Corrosion/baseevzenelement.h"
-//qqq  #include "../sm/Materials/evzenmaterialextensioninterface.h"
+#include "../sm/Materials/corrosionmaterialextensioninterface.h"
 
 #include "../sm/Materials/structuralms.h"
 
@@ -135,12 +135,12 @@ BaseEvzenElement :: giveLocationArrayOfDofIDs(IntArray &locationArray_u, IntArra
 }
 
  
-  //meaning of the function - something missing???
+  //change the function --- separate definitions???
 void
 BaseEvzenElement :: compute_StressVector_PhaseField_Concentration(FloatArray &P, FloatArray &E, GaussPoint *gp, TimeStep *tStep)
 {
     NLStructuralElement *elem = this->giveStructuralElement();
-    SimpleElectroMechanicalCrossSection *cs = this->giveCrossSection(); //new crossecton needed ???
+    SimpleCorrosionCrossSection *cs = this->giveCrossSection(); //new crossecton needed ???
     //unused -- compiler warning ???
     // FloatArray electricDisplacemenet;
     if( elem->giveGeometryMode() == 0) {
@@ -325,7 +325,7 @@ BaseEvzenElement :: computeStiffnessMatrix(FloatMatrix &answer, MatResponseMode 
 
 
     NLStructuralElement *elem = this->giveStructuralElement();
-    SimpleElectroMechanicalCrossSection *cs = this->giveCrossSection(); //unused -- compiler warning ???
+    SimpleCorrosionCrossSection *cs = this->giveCrossSection(); //unused -- compiler warning ???
 
     FloatMatrix B_u, B_phi, B_c, N_phi, N_c, D_uu, D_N_phiphi, D_B_phiphi, D_N_cc, D_B_cc, DuuB, DphiphiN, DphiphiB, DccN, DccB;
     FloatMatrix Kuu, Kphiphi, Kcc;
@@ -338,11 +338,11 @@ BaseEvzenElement :: computeStiffnessMatrix(FloatMatrix &answer, MatResponseMode 
       this->computeConcentrationNmatrixAt(gp, N_c);
        
       elem->computeBmatrixAt(gp, B_u); 
-      //qqq cs->giveConstitutiveMatrix_uu(D_uu, rMode, gp, tStep);
-      //qqq cs->giveConstitutiveMatrix_N_phiphi(D_N_phiphi, rMode, gp, tStep);
-      //qqq cs->giveConstitutiveMatrix_B_phiphi(D_B_phiphi, rMode, gp, tStep);
-      //qqq cs->giveConstitutiveMatrix_N_cc(D_N_cc, rMode, gp, tStep);
-      //qqq cs->giveConstitutiveMatrix_B_cc(D_B_cc, rMode, gp, tStep);
+      cs->giveConstitutiveMatrix_uu(D_uu, rMode, gp, tStep);
+      cs->giveConstitutiveMatrix_N_phiphi(D_N_phiphi, rMode, gp, tStep);
+      cs->giveConstitutiveMatrix_B_phiphi(D_B_phiphi, rMode, gp, tStep);
+      cs->giveConstitutiveMatrix_N_cc(D_N_cc, rMode, gp, tStep);
+      cs->giveConstitutiveMatrix_B_cc(D_B_cc, rMode, gp, tStep);
       
       double dV  = elem->computeVolumeAround(gp);
       DuuB.beProductOf(D_uu, B_u);
@@ -366,12 +366,12 @@ BaseEvzenElement :: computeStiffnessMatrix(FloatMatrix &answer, MatResponseMode 
 }
 
 // new name for the crossection ???
-SimpleElectroMechanicalCrossSection*
+SimpleCorrosionCrossSection*
 BaseEvzenElement :: giveCrossSection()
 // Returns the crossSection of the receiver.
 {
   //NLStructuralElement *elem = this->giveElement();
-  return static_cast< SimpleElectroMechanicalCrossSection* >( this->giveStructuralElement()->giveCrossSection() );
+  return static_cast< SimpleCorrosionCrossSection* >( this->giveStructuralElement()->giveCrossSection() );
 }
 
 

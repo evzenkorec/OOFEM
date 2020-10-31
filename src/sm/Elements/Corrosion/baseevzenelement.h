@@ -39,7 +39,7 @@
 #include "../sm/Elements/structuralelement.h"
 #include "../sm/Elements/nlstructuralelement.h"
 
-#include "../sm/CrossSections/ElectroMechanics/simpleelectromechanicalcrosssection.h"
+#include "../sm/CrossSections/Corrosion/simplecorrosioncrosssection.h"
 
 namespace oofem {
 /**
@@ -78,7 +78,7 @@ protected:
     /// End of pure virtual functions
 
     /// @return Reference to the associated crossSection of element.
-    SimpleElectroMechanicalCrossSection *giveCrossSection(); 
+    SimpleCorrosionCrossSection *giveCrossSection(); 
 
     virtual void computeStiffnessMatrix(FloatMatrix &, MatResponseMode, TimeStep *);
     virtual void giveInternalForcesVector(FloatArray &answer, TimeStep *tStep, int useUpdatedGpRecord);
