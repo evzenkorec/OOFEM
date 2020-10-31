@@ -67,8 +67,6 @@ protected:
     virtual void computePhaseFieldNmatrixAt(GaussPoint *gp, FloatMatrix &Ne) = 0;
     virtual void computeConcentrationBmatrixAt(GaussPoint *gp, FloatMatrix &Be) = 0;
     virtual void computeConcentrationNmatrixAt(GaussPoint *gp, FloatMatrix &Ne) = 0;
-    virtual void computeDisplacementFieldBmatrixAt(GaussPoint *gp, FloatMatrix &Bd){this->giveStructuralElement()->computeBmatrixAt(gp, Bd);}
-
     virtual int giveNumberOfConcentrationDofs() = 0;
     virtual int giveNumberOfDisplacementDofs() = 0;
     virtual int giveNumberOfPhaseFieldDofs() = 0;

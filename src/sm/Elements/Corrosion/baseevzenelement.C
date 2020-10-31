@@ -162,7 +162,7 @@ BaseEvzenElement :: computeStrainVector(FloatArray &answer, GaussPoint *gp, Time
     IntArray IdMask_u;
     this->giveDofManDofIDMask_u( IdMask_u );
     this->giveStructuralElement()->computeVectorOf(IdMask_u, VM_Total, tStep, d_u);
-    this->computeDisplacementFieldBmatrixAt(gp,B);
+    this->computeBmatrixAt(gp,B);
     answer.beProductOf(B, d_u);
 }
 
@@ -249,7 +249,7 @@ BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep
       // definition of the function missing
       double dV  = elem->computeVolumeAround(gp);
       // Compute nodal internal forces at nodes as f_u = \int_V B^T*vP dV
-      elem->computeBmatrixAt(gp, B_u, tStep, 0); // difference with this->computeDisplacementFieldBmatrixAt(gp,B)???;
+      elem->computeBmatrixAt(gp, B_u);  
       BS.beTProductOf(B_u, sigma);
       answer_u.add(dV, BS);
       // Compute nodal internal forces at nodes as f_\phi = \int B^T* vD dV     
@@ -337,7 +337,7 @@ BaseEvzenElement :: computeStiffnessMatrix(FloatMatrix &answer, MatResponseMode 
       this->computePhaseFieldNmatrixAt(gp, N_phi);
       this->computeConcentrationNmatrixAt(gp, N_c);
        
-      elem->computeBmatrixAt(gp, B_u); // difference with this->computeDisplacementFieldBmatrixAt(gp,B); ???
+      elem->computeBmatrixAt(gp, B_u); 
       //qqq cs->giveConstitutiveMatrix_uu(D_uu, rMode, gp, tStep);
       //qqq cs->giveConstitutiveMatrix_N_phiphi(D_N_phiphi, rMode, gp, tStep);
       //qqq cs->giveConstitutiveMatrix_B_phiphi(D_B_phiphi, rMode, gp, tStep);
