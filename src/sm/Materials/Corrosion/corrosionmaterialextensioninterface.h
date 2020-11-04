@@ -71,10 +71,10 @@ public:
 
   
   virtual void giveCorrosionRealStressVector(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, double phaseField, TimeStep *tStep) = 0;
-  virtual void givePhaseField_Nfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, TimeStep *tStep) = 0;
-  virtual void givePhaseField_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep) = 0;
-  virtual void giveConcentration_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep) = 0;
-  virtual void giveConcentration_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep) = 0;
+  virtual void givePhaseField_Nfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
+  virtual void givePhaseField_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
+  virtual void giveConcentration_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
+  virtual void giveConcentration_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
   // givePhaseField_Bfactor
   // ...
 
@@ -94,13 +94,11 @@ public:
 
   virtual void giveCorrosion3dMaterialStiffnessMatrix_B_cc(FloatMatrix &answer,
                                                     MatResponseMode mode,
-                                                    GaussPoint *gp, TimeStep *tStep) = 0;
-
-  // virtual void giveCorrosion3dMaterialStiffnessMatrix_N_cc, _B_cc
-
-    
+                                                    GaussPoint *gp, TimeStep *tStep) = 0;     
       
 };
 
 }
 #endif
+
+//missing .C file

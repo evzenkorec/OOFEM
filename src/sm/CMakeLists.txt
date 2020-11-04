@@ -173,6 +173,10 @@ set (sm_crosssection
     CrossSections/variablecrosssection.C
     CrossSections/warpingcrosssection.C
     CrossSections/ElectroMechanics/simpleelectromechanicalcrosssection.C
+    CrossSections/Corrosion/simplecorrosioncrosssection.C
+    
+    
+    
     )
 
 set (sm_emodel
@@ -328,6 +332,9 @@ set (sm_material
     # Electro-mechanics
     Materials/HyperelasticMaterials/ElectroMechanics/mooneyrivlin_idealdielectric.C    
     Materials/ElectroMechanics/electromechanicalms.C
+    # Corrosion
+    Materials/Corrosion/corrosionmaterialextensioninterface.C
+    Materials/Corrosion/misesmat_corrosion.C
     )
 
 if (USE_PYTHON)

@@ -137,22 +137,17 @@ BaseEvzenElement :: giveLocationArrayOfDofIDs(IntArray &locationArray_u, IntArra
  
   //change the function --- separate definitions???
 void
-BaseEvzenElement :: compute_StressVector_PhaseField_Concentration(FloatArray &P, FloatArray &E, GaussPoint *gp, TimeStep *tStep)
+BaseEvzenElement :: computeInternalForcesInputs(FloatArray &stressAnswer, FloatArray strain, FloatArray c, FloatArray phi, FloatArray c_grad, FloatArray phi_grad, FloatArray &pf_Nanswer, FloatArray &pf_Banswer, FloatArray &c_Nanswer, FloatArray &c_Banswer,  GaussPoint *gp, TimeStep *tStep)
 {
-    NLStructuralElement *elem = this->giveStructuralElement();
-    SimpleCorrosionCrossSection *cs = this->giveCrossSection(); //new crossecton needed ???
-    //unused -- compiler warning ???
-    // FloatArray electricDisplacemenet;
-    if( elem->giveGeometryMode() == 0) {
-      /*FloatArray strain;
-      this->computeStrainVector(strain, gp, tStep);
-      this->computePressure(pressure,gp, tStep);   
-      mixedPressureMat->giveRealStressVector(stress, gp, strain,pressure, tStep);
-      */
-    }
-    
+    //NLStructuralElement *elem = this->giveStructuralElement();
+    SimpleCorrosionCrossSection *cs = this->giveCrossSection();
+       
+    cs->computeStressVector(stress, gp, strain, phi, tStep);
+    cs->computePhaseFieldNfactor(pf_N, gp, phi, c, phi_grad, c_grad, tStep);
+    cs->computePhaseFieldBfactor(pf_B, gp, phi, c, phi_grad, c_grad, tStep);
+    cs->computeConcentrationNfactor(c_N, gp, phi, c, phi_grad, c_grad, tStep);
+    cs->computeConcentrationBfactor(c_B, gp, phi, c, phi_grad, c_grad, tStep);
 }
-
 
 void
 BaseEvzenElement :: computeStrainVector(FloatArray &answer, GaussPoint *gp, TimeStep *tStep)
@@ -225,7 +220,7 @@ void
 BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep, int useUpdatedGpRecord)
 {
     NLStructuralElement *elem = this->giveStructuralElement();
-    FloatArray BS, sigma, epsilon, c, phi, pf_N, pf_B, c_N, c_B, c_grad, phi_grad, N_phiN, B_phiB, N_cN, B_cB;
+    FloatArray BS, stress, strain, c, phi, pf_N, pf_B, c_N, c_B, c_grad, phi_grad, N_phiN, B_phiB, N_cN, B_cB;
     FloatMatrix B_u, N_phi, B_phi, N_c, B_c;
    
     answer.resize(this->giveNumberOfDofs());
@@ -239,13 +234,14 @@ BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep
     answer_c.zero();
     
     for ( GaussPoint *gp: *elem->giveIntegrationRule(0) ) {
-      this->computeStrainVector(epsilon, gp, tStep);
+      this->computeStrainVector(strain, gp, tStep);
       this->computeConcentration(c, gp, tStep);
       this->computePhaseField(phi, gp, tStep);
       this->computeConcentrationGradient(c_grad, gp, tStep);
       this->computePhaseFieldGradient(phi_grad, gp, tStep);
       //
-      //qqq this->compute_InternalForcesInputs(sigma, pf_N, pf_B, c_N, c_B);
+      this->computeInternalForcesInputs(stress, strain, c, phi, c_grad, phi_grad, pf_N, pf_B, c_N, c_B, gp, tstep);
+            
       // definition of the function missing
       double dV  = elem->computeVolumeAround(gp);
       // Compute nodal internal forces at nodes as f_u = \int_V B^T*vP dV

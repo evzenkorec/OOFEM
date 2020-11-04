@@ -42,7 +42,7 @@
 
 ///@name Input fields for SimpleCrossSection
 //@{
-#define _IFT_SimpleCorrosionCrossSection_Name "simpleccs"
+#define _IFT_SimpleCorrosionCrossSection_Name "simplecorcs"
 #define _IFT_SimpleCorrosionCrossSection_thick "thick"
 #define _IFT_SimpleCorrosionCrossSection_width "width"
 #define _IFT_SimpleCorrosionCrossSection_area "area"
@@ -81,11 +81,11 @@ public:
 
     virtual bool isCharacteristicMtrxSymmetric(MatResponseMode mode);
 
-    void compute_StressVector(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, const  double phaseField, TimeStep *tStep);
-    void computePhaseField_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep);
-    void computePhaseField_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep);
-    void computeConcentration_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep);
-    void computeConcentration_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double cocentration, TimeStep *tStep);
+    void computeStressVector(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, const  double phaseField, TimeStep *tStep);
+    void computePhaseFieldNfactor(double &N_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
+    void computePhaseFieldBfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
+    void computeConcentrationNfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
+    void computeConcentrationBfactor(double &B_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
 
     void giveConstitutiveMatrix_uu(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep);
     void giveConstitutiveMatrix_N_phiphi(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep);
