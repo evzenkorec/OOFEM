@@ -46,8 +46,8 @@
 namespace oofem {
 REGISTER_CrossSection(SimpleCorrosionCrossSection);
 
-
-void
+  //qqq const  double phaseField --- format problem, gradients of phi and c --- wrong format
+void 
 SimpleCorrosionCrossSection :: computeStressVector(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, const  double phaseField, TimeStep *tStep)
 {
     // This function returns the first Piola-Kirchoff stress in vector format and vector of electrical displacement

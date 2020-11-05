@@ -82,7 +82,7 @@ protected:
 
     virtual void computeStiffnessMatrix(FloatMatrix &, MatResponseMode, TimeStep *);
     virtual void giveInternalForcesVector(FloatArray &answer, TimeStep *tStep, int useUpdatedGpRecord);
-  void compute_StressVector_PhaseField_Concentration(FloatArray &stress, FloatArray &electricDisplacement, GaussPoint *gp, TimeStep *tStep); //??? inputs
+    void computeInternalForcesInputs(FloatArray &stressAnswer, FloatArray strain, FloatArray c, FloatArray phi, FloatArray c_grad, FloatArray phi_grad, FloatArray &pf_Nanswer, FloatArray &pf_Banswer, FloatArray &c_Nanswer, FloatArray &c_Banswer,  GaussPoint *gp, TimeStep *tStep);
     void computeStrainVector(FloatArray &answer, GaussPoint *gp, TimeStep *tStep);
     void computePhaseField(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);
     void computeConcentration(FloatArray &answer,  GaussPoint *gp, TimeStep *tStep);

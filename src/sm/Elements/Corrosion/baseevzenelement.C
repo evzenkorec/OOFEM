@@ -35,7 +35,7 @@
 
 
 #include "../sm/Elements/Corrosion/baseevzenelement.h"
-#include "../sm/Materials/corrosionmaterialextensioninterface.h"
+#include "../sm/Materials/Corrosion/corrosionmaterialextensioninterface.h"
 
 #include "../sm/Materials/structuralms.h"
 
@@ -134,19 +134,17 @@ BaseEvzenElement :: giveLocationArrayOfDofIDs(IntArray &locationArray_u, IntArra
     
 }
 
- 
-  //change the function --- separate definitions???
 void
 BaseEvzenElement :: computeInternalForcesInputs(FloatArray &stressAnswer, FloatArray strain, FloatArray c, FloatArray phi, FloatArray c_grad, FloatArray phi_grad, FloatArray &pf_Nanswer, FloatArray &pf_Banswer, FloatArray &c_Nanswer, FloatArray &c_Banswer,  GaussPoint *gp, TimeStep *tStep)
 {
     //NLStructuralElement *elem = this->giveStructuralElement();
     SimpleCorrosionCrossSection *cs = this->giveCrossSection();
        
-    cs->computeStressVector(stress, gp, strain, phi, tStep);
-    cs->computePhaseFieldNfactor(pf_N, gp, phi, c, phi_grad, c_grad, tStep);
-    cs->computePhaseFieldBfactor(pf_B, gp, phi, c, phi_grad, c_grad, tStep);
-    cs->computeConcentrationNfactor(c_N, gp, phi, c, phi_grad, c_grad, tStep);
-    cs->computeConcentrationBfactor(c_B, gp, phi, c, phi_grad, c_grad, tStep);
+    cs->computeStressVector(stressAnswer, gp, strain, phi, tStep);
+    cs->computePhaseFieldNfactor(pf_Nanswer, gp, phi, c, phi_grad, c_grad, tStep);
+    cs->computePhaseFieldBfactor(pf_Banswer, gp, phi, c, phi_grad, c_grad, tStep);
+    cs->computeConcentrationNfactor(c_Nanswer, gp, phi, c, phi_grad, c_grad, tStep);
+    cs->computeConcentrationBfactor(c_Banswer, gp, phi, c, phi_grad, c_grad, tStep);
 }
 
 void
