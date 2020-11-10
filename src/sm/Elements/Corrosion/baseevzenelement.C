@@ -135,7 +135,7 @@ BaseEvzenElement :: giveLocationArrayOfDofIDs(IntArray &locationArray_u, IntArra
 }
 
 void
-BaseEvzenElement :: computeInternalForcesInputs(FloatArray &stressAnswer, FloatArray strain, FloatArray c, FloatArray phi, FloatArray c_grad, FloatArray phi_grad, FloatArray &pf_Nanswer, FloatArray &pf_Banswer, FloatArray &c_Nanswer, FloatArray &c_Banswer,  GaussPoint *gp, TimeStep *tStep)
+BaseEvzenElement :: computeInternalForcesInputs(FloatArray &stressAnswer, FloatArray &pf_Nanswer, FloatArray &pf_Banswer, FloatArray &c_Nanswer, FloatArray &c_Banswer, const FloatArray &strain, double c, double phi, const FloatArray &c_grad, const FloatArray &phi_grad,   GaussPoint *gp, TimeStep *tStep)
 {
     //NLStructuralElement *elem = this->giveStructuralElement();
     SimpleCorrosionCrossSection *cs = this->giveCrossSection();
@@ -155,33 +155,37 @@ BaseEvzenElement :: computeStrainVector(FloatArray &answer, GaussPoint *gp, Time
     IntArray IdMask_u;
     this->giveDofManDofIDMask_u( IdMask_u );
     this->giveStructuralElement()->computeVectorOf(IdMask_u, VM_Total, tStep, d_u);
-    this->computeBmatrixAt(gp,B);
+    this->giveStructuralElement()->computeBmatrixAt(gp,B);
     answer.beProductOf(B, d_u);
 }
 
 void
-BaseEvzenElement :: computePhaseField(FloatArray &answer,GaussPoint *gp, TimeStep *tStep)
+BaseEvzenElement :: computePhaseField(double &answer,GaussPoint *gp, TimeStep *tStep)
 {
     IntArray IdMask_phi;
     FloatArray d_phi;
     FloatMatrix N_phi;
     this->giveDofManDofIDMask_phi( IdMask_phi );
     this->giveStructuralElement()->computeVectorOf(IdMask_phi, VM_Total, tStep, d_phi);
-    this->computePhaseFieldNmatrixAt(gp, N_phi);  
-    answer.beProductOf(N_phi,d_phi);
+    this->computePhaseFieldNmatrixAt(gp, N_phi);
+    FloatArray Nd;
+    Nd.beProductOf(N_phi,d_phi);
+    answer = Nd.at(1);
 }
 
 
 void
-BaseEvzenElement :: computeConcentration(FloatArray &answer,GaussPoint *gp, TimeStep *tStep)
+BaseEvzenElement :: computeConcentration(double &answer,GaussPoint *gp, TimeStep *tStep)
 {
     IntArray IdMask_c;
     FloatArray d_c;
     FloatMatrix N_c;
     this->giveDofManDofIDMask_c( IdMask_c );
     this->giveStructuralElement()->computeVectorOf(IdMask_c, VM_Total, tStep, d_c);
-    this->computeConcentrationNmatrixAt(gp, N_c);  
-    answer.beProductOf(N_c,d_c);
+    this->computeConcentrationNmatrixAt(gp, N_c);
+    FloatArray Nd;
+    Nd.beProductOf(N_c,d_c);
+    answer = Nd.at(1);
 }
 
 void
@@ -218,7 +222,9 @@ void
 BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep, int useUpdatedGpRecord)
 {
     NLStructuralElement *elem = this->giveStructuralElement();
-    FloatArray BS, stress, strain, c, phi, pf_N, pf_B, c_N, c_B, c_grad, phi_grad, N_phiN, B_phiB, N_cN, B_cB;
+    double c, phi;
+    FloatArray BS, stress, strain, pf_N, pf_B, c_N, c_B, c_grad, phi_grad, N_phiN, B_phiB, N_cN, B_cB;
+    
     FloatMatrix B_u, N_phi, B_phi, N_c, B_c;
    
     answer.resize(this->giveNumberOfDofs());
@@ -238,13 +244,13 @@ BaseEvzenElement :: giveInternalForcesVector(FloatArray &answer, TimeStep *tStep
       this->computeConcentrationGradient(c_grad, gp, tStep);
       this->computePhaseFieldGradient(phi_grad, gp, tStep);
       //
-      this->computeInternalForcesInputs(stress, strain, c, phi, c_grad, phi_grad, pf_N, pf_B, c_N, c_B, gp, tstep);
+      this->computeInternalForcesInputs(stress, pf_N, pf_B, c_N, c_B, strain, c, phi, c_grad, phi_grad,  gp, tStep);
             
       // definition of the function missing
       double dV  = elem->computeVolumeAround(gp);
       // Compute nodal internal forces at nodes as f_u = \int_V B^T*vP dV
       elem->computeBmatrixAt(gp, B_u);  
-      BS.beTProductOf(B_u, sigma);
+      BS.beTProductOf(B_u, stress);
       answer_u.add(dV, BS);
       // Compute nodal internal forces at nodes as f_\phi = \int B^T* vD dV     
       this->computePhaseFieldNmatrixAt(gp, N_phi);

@@ -70,7 +70,7 @@ SimpleCorrosionCrossSection :: computeStressVector(FloatArray &stress, GaussPoin
 
 
 void
-SimpleCorrosionCrossSection :: computePhaseFieldNfactor(double &N_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+SimpleCorrosionCrossSection :: computePhaseFieldNfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 {
     MaterialMode mode = gp->giveMaterialMode();
     CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
@@ -78,11 +78,11 @@ SimpleCorrosionCrossSection :: computePhaseFieldNfactor(double &N_factor, GaussP
         OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
       }
 
-      corMat->givePhaseField_Nfactor(N_factor, gp, phaseField, gradPhaseField, concentration, gradConcentration, tStep);
+      corMat->givePhaseField_Nfactor(N_factor, gp, phaseField, concentration, gradPhaseField, gradConcentration, tStep);
 }
 
 void
-SimpleCorrosionCrossSection :: computePhaseFieldBfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+SimpleCorrosionCrossSection :: computePhaseFieldBfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 {
     MaterialMode mode = gp->giveMaterialMode();
     CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
@@ -90,11 +90,11 @@ SimpleCorrosionCrossSection :: computePhaseFieldBfactor(double &B_factor, GaussP
         OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
       }
 
-      corMat->givePhaseField_Bfactor(B_factor, gp, phaseField, concentration, gradPhaseField, concentration, gradConcentration, tStep);
+      corMat->givePhaseField_Bfactor(B_factor, gp, phaseField, concentration, gradPhaseField, gradConcentration, tStep);
 }
 
 void
-SimpleCorrosionCrossSection :: computeConcentrationNfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+SimpleCorrosionCrossSection :: computeConcentrationNfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField, double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 {
     MaterialMode mode = gp->giveMaterialMode();
     CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
@@ -102,11 +102,11 @@ SimpleCorrosionCrossSection :: computeConcentrationNfactor(double &N_factor, Gau
         OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
       }
 
-      corMat->giveConcentration_Nfactor(N_factor, gp, phaseField, concentration, gradPhaseField, concentration, gradConcentration, tStep);
+      corMat->giveConcentration_Nfactor(N_factor, gp, phaseField, concentration, gradPhaseField, gradConcentration, tStep);
 }
 
 void
-SimpleCorrosionCrossSection :: computeConcentrationBfactor(double &B_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+SimpleCorrosionCrossSection :: computeConcentrationBfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField, double concentration, const FloatArray  &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 {
     MaterialMode mode = gp->giveMaterialMode();
     CorrosionMaterialExtensionInterface *corMat = static_cast< CorrosionMaterialExtensionInterface * >(this->giveMaterialInterface(CorrosionMaterialExtensionInterfaceType, gp) );
@@ -114,7 +114,7 @@ SimpleCorrosionCrossSection :: computeConcentrationBfactor(double &B_factor, Gau
         OOFEM_ERROR("Material doesn't implement the required Corrosion Material interface!");
       }
 
-      corMat->giveConcentration_Bfactor(B_factor, gp, phaseField, concentration, gradPhaseField, concentration, gradConcentration, tStep);
+      corMat->giveConcentration_Bfactor(B_factor, gp, phaseField, concentration, gradPhaseField, gradConcentration, tStep);
 }
 
   ///??? dodelat dalsi cleny, PhaseField_Bfactor, ...
@@ -148,7 +148,7 @@ SimpleCorrosionCrossSection :: giveConstitutiveMatrix_N_phiphi(FloatMatrix &answ
 
    MaterialMode mode = gp->giveMaterialMode();
     if ( mode == _3dMat ) {
-        corMat->give3dMaterialStiffnessMatrix_N_phiphi(answer, rMode, gp, tStep);
+        corMat->giveCorrosion3dMaterialStiffnessMatrix_N_phiphi(answer, rMode, gp, tStep);
     } else {
         OOFEM_ERROR( "unknown mode (%s)", __MaterialModeToString(mode) );
     }
@@ -180,7 +180,7 @@ SimpleCorrosionCrossSection :: giveConstitutiveMatrix_N_cc(FloatMatrix &answer, 
 
    MaterialMode mode = gp->giveMaterialMode();
     if ( mode == _3dMat ) {
-        corMat->give3dMaterialStiffnessMatrix_N_cc(answer, rMode, gp, tStep);
+        corMat->giveCorrosion3dMaterialStiffnessMatrix_N_cc(answer, rMode, gp, tStep);
     } else {
         OOFEM_ERROR( "unknown mode (%s)", __MaterialModeToString(mode) );
     }

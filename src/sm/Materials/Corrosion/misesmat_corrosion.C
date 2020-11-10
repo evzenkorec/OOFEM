@@ -32,7 +32,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "idmgrad.h"
+#include "misesmat_corrosion.h"
 #include "gausspoint.h"
 #include "floatmatrix.h"
 #include "floatarray.h"
@@ -83,16 +83,17 @@ MisesCorrosionMaterial :: initializeFrom(InputRecord *ir)
     IR_GIVE_FIELD(ir, cSat, _IFT_MisesCorrosionMaterial_cSat); // average saturation concentration
     IR_GIVE_FIELD(ir, A, _IFT_MisesCorrosionMaterial_A); //free energy density curvature
     IR_GIVE_FIELD(ir, aStar, _IFT_MisesCorrosionMaterial_aStar); //free enrgy density curvature
+
+    w = 4.*pow(2, 1/2)*this->aStar*this->gamma/this->l;
+
+    alpha = 16*pow(this->gamma, 2)/w;
+    
+    cSe = 1;
+    
+    cLe = cSat/cSolid;
 }
 
-  w = 4.*pow(2, 1/2)*this->aStar*this->gamma/this->l;
-
-  alpha = 16*pow(this->gamma, 2)/w;
-
-  cSe = 1;
-
-  cLe = cSat/cSolid;
-
+  
 double
 MisesCorrosionMaterial :: computeInterfaceKineticsCoefficient(){
   return L0;  
@@ -125,7 +126,7 @@ MisesCorrosionMaterial :: computeDerivativeOfDoubleWellPotential(double phaseFie
 
 double
 MisesCorrosionMaterial :: computeSecondDerivativeOfDoubleWellPotential(double phaseField){
-  return 2.pow(1. - phaseField, 2) - 8.*phaseField*(1. - phaseField) + 2*pow(phaseField, 2); 
+  return 2. * pow(1. - phaseField, 2) - 8.*phaseField*(1. - phaseField) + 2*pow(phaseField, 2); 
 }
 
 double
@@ -136,6 +137,7 @@ MisesCorrosionMaterial :: microstress(double phaseField, double concentration){
   return -2.*A*(concentration - h*(cSe - cLe) - cLe)*(cSe - cLe)*derOFh + w*derOFg;  
 }
 
+ double
 MisesCorrosionMaterial :: microstressDerivative(double phaseField, double concentration){
   double h = this->computeDegradationFunction(phaseField);
   double derOFh = this->computeDerivativeOfDegradationFunction(phaseField);
@@ -163,10 +165,11 @@ MisesCorrosionMaterial :: giveCorrosionRealStressVector(FloatArray &stress, Gaus
   // update gp
   status->letTempStrainVectorBe(totalStrain);
   status->letTempStressVectorBe(stress);
+  status->setTempPhaseField(phaseField);
 }
 
 void
-MisesCorrosionMaterial :: givePhaseField_Nfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+MisesCorrosionMaterial :: givePhaseField_Nfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField, double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 
 {
   double h = this->computeDegradationFunction(phaseField);
@@ -178,20 +181,20 @@ MisesCorrosionMaterial :: givePhaseField_Nfactor(double &N_factor, GaussPoint *g
 }
 
 void
-MisesCorrosionMaterial :: givePhaseField_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+MisesCorrosionMaterial :: givePhaseField_Bfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 {
   double L = this->computeInterfaceKineticsCoefficient();
   B_factor = L*alpha*gradPhaseField;
 }
 
 void
-MisesCorrosionMaterial :: giveConcentration_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+MisesCorrosionMaterial :: giveConcentration_Nfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 {
   N_factor = 1.;
 }
 
 void
-MisesCorrosionMaterial :: giveConcentration_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep)
+MisesCorrosionMaterial :: giveConcentration_Bfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep)
 {
   double derOFh = this->computeDerivativeOfDegradationFunction(phaseField); 
   B_factor = D*(gradConcentration - derOFh*(cSe - cLe)*gradPhaseField);
@@ -200,7 +203,7 @@ MisesCorrosionMaterial :: giveConcentration_Bfactor(double &B_factor, GaussPoint
 
   
 
-
+/*
 void
 MisesCorrosionMaterial :: giveStiffnessMatrix(FloatMatrix &answer,
                                    MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep)
@@ -210,7 +213,7 @@ MisesCorrosionMaterial :: giveStiffnessMatrix(FloatMatrix &answer,
 {
     OOFEM_ERROR("Shouldn't be called.");
 }
-
+*/
 
 void
 MisesCorrosionMaterial :: giveCorrosion3dMaterialStiffnessMatrix_uu(FloatMatrix &answer, MatResponseMode mode, GaussPoint *gp, TimeStep *tStep)
@@ -259,12 +262,15 @@ MisesCorrosionMaterial :: giveCorrosion3dMaterialStiffnessMatrix_B_cc(FloatMatri
 MaterialStatus *
 MisesCorrosionMaterial :: CreateStatus(GaussPoint *gp) const
 {
-    return new MisesCorrosionMaterialStatus(1, MisesCorrosionMaterial :: domain, gp);
+  return new MisesCorrosionMaterialStatus(1, MisesCorrosionMaterial :: domain, gp);
 }
 
 
-MisesCorrosionMaterialStatus :: MisesCorrosionMaterialStatus(int n, Domain *d, GaussPoint *g) : IsotropicDamageMaterial1Status(n, d, g) //qqq
-{ }
+MisesCorrosionMaterialStatus :: MisesCorrosionMaterialStatus(int n, Domain *d, GaussPoint *g) : MisesMatStatus(n, d, g) //qqq
+{
+  phaseField = 0;
+  concentration = 0;
+}
 
 
 MisesCorrosionMaterialStatus :: ~MisesCorrosionMaterialStatus()
@@ -280,10 +286,9 @@ MisesCorrosionMaterialStatus :: initTempStatus()
 // builds new crackMap
 //
 {
-    IsotropicDamageMaterial1Status :: initTempStatus();
-    GradientDamageMaterialStatusExtensionInterface :: initTempStatus();
-    this->tempDamage = this->damage; //qqq
-
+    MisesMatStatus :: initTempStatus();
+    tempPhaseField = phaseField;
+    tempConcentration = concentration;
 }
 
 
@@ -296,9 +301,9 @@ MisesCorrosionMaterialStatus :: updateYourself(TimeStep *tStep)
 // temporary variables are having values corresponding to newly reched equilibrium.
 //
 {
-    IsotropicDamageMaterial1Status :: updateYourself(tStep);
-    GradientDamageMaterialStatusExtensionInterface :: updateYourself(tStep);
-
+  MisesMatStatus :: updateYourself(tStep);
+  phaseField = tempPhaseField;
+  concentration = tempConcentration;
 }
 
 
@@ -312,13 +317,8 @@ MisesCorrosionMaterialStatus :: saveContext(DataStream &stream, ContextMode mode
 {
     contextIOResultType iores;
     // save parent class status
-    if ( ( iores = IsotropicDamageMaterial1Status :: saveContext(stream, mode, obj) ) != CIO_OK ) {
+    if ( ( iores = MisesMatStatus :: saveContext(stream, mode, obj) ) != CIO_OK ) {
         THROW_CIOERR(iores);
-    }
-
-    // write a raw data
-    if ( !stream.write(le) ) {
-        THROW_CIOERR(CIO_IOERR);
     }
 
     return CIO_OK;
@@ -332,14 +332,10 @@ MisesCorrosionMaterialStatus :: restoreContext(DataStream &stream, ContextMode m
 {
     contextIOResultType iores;
     // read parent class status
-    if ( ( iores = IsotropicDamageMaterialStatus :: restoreContext(stream, mode, obj) ) != CIO_OK ) {
+    if ( ( iores = MisesMatStatus :: restoreContext(stream, mode, obj) ) != CIO_OK ) {
         THROW_CIOERR(iores);
     }
 
-    // read raw data
-    if ( !stream.read(le) ) {
-        THROW_CIOERR(CIO_IOERR);
-    }
 
     return CIO_OK;
 }

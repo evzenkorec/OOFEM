@@ -82,10 +82,10 @@ public:
     virtual bool isCharacteristicMtrxSymmetric(MatResponseMode mode);
 
     void computeStressVector(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, const  double phaseField, TimeStep *tStep);
-    void computePhaseFieldNfactor(double &N_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
-    void computePhaseFieldBfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
-    void computeConcentrationNfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
-    void computeConcentrationBfactor(double &B_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep);
+    void computePhaseFieldNfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep);
+    void computePhaseFieldBfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep);
+    void computeConcentrationNfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField, double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep);
+    void computeConcentrationBfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField, double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep);
 
     void giveConstitutiveMatrix_uu(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep);
     void giveConstitutiveMatrix_N_phiphi(FloatMatrix &answer, MatResponseMode rMode, GaussPoint *gp, TimeStep *tStep);

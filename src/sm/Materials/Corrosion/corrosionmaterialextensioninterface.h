@@ -65,16 +65,16 @@ public:
      * Constructor. Creates material with given number, belonging to given domain.
      * @param d Domain to which new material will belong.
      */
-  CorrosionMaterialExtensionInterface(Domain *d){    dom = d;}
+  CorrosionMaterialExtensionInterface(Domain *d);
     /// Destructor.
   virtual ~CorrosionMaterialExtensionInterface() { }
 
   
   virtual void giveCorrosionRealStressVector(FloatArray &stress, GaussPoint *gp, const FloatArray &strain, double phaseField, TimeStep *tStep) = 0;
-  virtual void givePhaseField_Nfactor(double &N_factor, GaussPoint *gp, double phaseField, double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
-  virtual void givePhaseField_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
-  virtual void giveConcentration_Nfactor(double &N_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
-  virtual void giveConcentration_Bfactor(double &B_factor, GaussPoint *gp, double phaseField,  double concentration, double gradPhaseField, double gradConcentration, TimeStep *tStep) = 0;
+  virtual void givePhaseField_Nfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField, double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep) = 0;
+  virtual void givePhaseField_Bfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep) = 0;
+  virtual void giveConcentration_Nfactor(FloatArray &N_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep) = 0;
+  virtual void giveConcentration_Bfactor(FloatArray &B_factor, GaussPoint *gp, double phaseField,  double concentration, const FloatArray &gradPhaseField, const FloatArray &gradConcentration, TimeStep *tStep) = 0;
   // givePhaseField_Bfactor
   // ...
 
